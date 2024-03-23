@@ -1,51 +1,59 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cstdio> // For remove and rename functions
+#include <vector>
 
 using namespace std;
 
 void create_file(const string& file_name) {
     ifstream fin(file_name);
-    if (!fin.is_open()) {
-        cout << "Error opening file." << endl;
-        return;
+    if (fin.fail()) {
+        // File doesn't exist, create a new one
+        ofstream fout(file_name);
+        if (!fout.is_open()) {
+            cout << "Error creating file." << endl;
+            return;
+        }
+        fout.close();
+        fin.open(file_name);
     }
 
     string website, password;
     cout << "Enter the website you are saving the password for: " << endl;
     getline(cin >> ws, website);
 
-    // Check if the website already exists in the file
+    // Check if the website already exists
     string line;
     while (getline(fin, line)) {
         size_t pos = line.find(',');
         if (pos != string::npos) {
             string existing_website = line.substr(0, pos);
             if (existing_website == website) {
-                cout << "Website already exists." << endl;
+                cout << "Website already exists. Password not added." << endl;
+                fin.close();
                 return;
             }
         }
     }
-
     fin.close();
 
-    // If the website does not exist, prompt for password and add it to the file
+    cout << "Enter the password: " << endl;
+    getline(cin >> ws, password);
+
+    // Append the new website and password to the file
     ofstream fout(file_name, ios::out | ios::app);
     if (!fout.is_open()) {
         cout << "Error opening file for writing." << endl;
         return;
     }
 
-    cout << "Enter the password: " << endl;
-    getline(cin >> ws, password);
-
     fout << website << "," << password << "\n";
     fout.close();
 
     cout << "Password added successfully." << endl;
 }
+
+
 
 string get_password(const string& file_name, const string& target_website) {
     ifstream fin(file_name);
@@ -62,9 +70,8 @@ string get_password(const string& file_name, const string& target_website) {
             string password = line.substr(pos + 1);
             if (website == target_website) {
                 fin.close();
-                cout<< "the password for "<< website << " is " << password << endl;
+                cout << "The password for " << website << " is " << password << endl;
                 return password;
-                
             }
         }
     }
@@ -81,6 +88,8 @@ void edit_password(const string& file_name, const string& target_website, const 
         return;
     }
 
+    bool found = false; // Flag to indicate if the website was found and password updated
+
     ofstream fout("temp.txt");
     if (!fout.is_open()) {
         cout << "Error creating temp file." << endl;
@@ -96,6 +105,7 @@ void edit_password(const string& file_name, const string& target_website, const 
             string password = line.substr(pos + 1);
             if (website == target_website) {
                 password = new_password;
+                found = true; // Set found to true if website is found and password updated
             }
             fout << website << "," << password << "\n";
         }
@@ -103,6 +113,11 @@ void edit_password(const string& file_name, const string& target_website, const 
 
     fin.close();
     fout.close();
+
+    if (!found) {
+        cout << "No website with that name found. Password not updated." << endl;
+        return;
+    }
 
     if (remove(file_name.c_str()) != 0) {
         cout << "Error deleting old file." << endl;
@@ -116,6 +131,8 @@ void edit_password(const string& file_name, const string& target_website, const 
 
     cout << "Password for " << target_website << " updated successfully." << endl;
 }
+
+
 void display_file(const string& file_name) {
     ifstream fin(file_name);
     if (!fin.is_open()) {
@@ -131,6 +148,7 @@ void display_file(const string& file_name) {
 
     fin.close();
 }
+
 void delete_password(const string& file_name, const string& target_website) {
     ifstream fin(file_name);
     if (!fin.is_open()) {
@@ -171,29 +189,107 @@ void delete_password(const string& file_name, const string& target_website) {
 
     cout << "Password for " << target_website << " deleted successfully." << endl;
 }
+
+bool verify_password(const string& file_name) {
+    string user, password;
+    int attempts = 5;
+
+    cout << "Enter your user: ";
+    getline(cin >> ws, user);
+
+    ifstream fin(file_name);
+    if (!fin.is_open()) {
+        cout << "Error opening file." << endl;
+        return false;
+    }
+
+    bool user_found = false;
+    string line;
+    while (getline(fin, line)) {
+        size_t pos = line.find(',');
+        if (pos != string::npos) {
+            string stored_user = line.substr(0, pos);
+            if (stored_user == user) {
+                user_found = true;
+                break;
+            }
+        }
+    }
+    fin.close();
+
+    if (!user_found) {
+        cout << "user does not exist." << endl;
+        return false;
+    }
+
+    while (attempts > 0) {
+        cout << "Enter the password for " << user << ": ";
+        getline(cin >> ws, password);
+
+        fin.open(file_name);
+        if (!fin.is_open()) {
+            cout << "Error opening file." << endl;
+            return false;
+        }
+
+        bool password_matched = false;
+        while (getline(fin, line)) {
+            size_t pos = line.find(',');
+            if (pos != string::npos) {
+                string stored_user = line.substr(0, pos);
+                string stored_password = line.substr(pos + 1);
+                if (stored_user == user && stored_password == password) {
+                    password_matched = true;
+                    break;
+                }
+            }
+        }
+        fin.close();
+
+        if (password_matched) {
+            cout << "Password verified successfully." << endl;
+            return true;
+        } else {
+            attempts--;
+            if (attempts > 0) {
+                cout << "Wrong password. " << attempts << " attempts left." << endl;
+            } else {
+                cout << "You have exceeded the maximum number of attempts." << endl;
+            }
+        }
+    }
+
+    return false;
+}
+
 int main() {
     string file_name;
+    string website;
+    string website_c;
+    string new_pass;
+    string password_c;
+
     cout << "Enter the file name: " << endl;
     getline(cin >> ws, file_name);
-   
-    string website;
-    cout << "Enter the website you want the password for: " << endl;
-    getline(cin >> ws, website);
 
+    create_file(file_name);
 
-    string password_c;
-    cout << "what password do you want to change: " << endl;
-    getline(cin >> ws, password_c);
-
-    string new_pass;
-    cout << "what pass do u want is the now password: " << endl;
-    getline(cin >> ws, new_pass);
-    edit_password(file_name,password_c,new_pass);
+    //cout << "Enter the website you want the password for: " << endl;
+    //getline(cin >> ws, website);
+    //get_password(file_name, website);
+//
+    //cout << "Enter the website whose password you want to change: " << endl;
+    //getline(cin >> ws, website_c);
+    //
+    //cout << "Enter the new password: " << endl;
+    //getline(cin >> ws, new_pass);
+//
+    //edit_password(file_name, website_c, new_pass);
+//
+    //display_file(file_name);
+//
     
 
-    delete_password(file_name, website);
-
-    display_file(file_name);
-
+    verify_password(file_name);
     return 0;
 }
