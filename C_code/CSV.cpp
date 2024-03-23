@@ -5,7 +5,17 @@
 #include "CSV.h"
 using namespace std;
 
-void create_file(const string& file_name) {
+// Function to encrypt a string using XOR with a key
+string encrypt(const string& data, const string& key) {
+    string result = data;
+    for (size_t i = 0; i < data.length(); ++i) {
+        result[i] = data[i] ^ key[i % key.length()];
+    }
+    return result;
+}
+
+
+void create_file(const string& file_name, const string& key) {
     ifstream fin(file_name);
     if (fin.fail()) {
         // File doesn't exist, create a new one
@@ -17,7 +27,7 @@ void create_file(const string& file_name) {
         fout.close();
         fin.open(file_name);
     }
-
+    
     string website, password;
     cout << "Enter the website you are saving the password for: " << endl;
     getline(cin >> ws, website);
@@ -25,6 +35,15 @@ void create_file(const string& file_name) {
     // Check if the website already exists
     string line;
     while (getline(fin, line)) {
+        string decrypted_line;
+        for (char c : line) {
+            // Decrypt each character individually, except for the comma
+            if (c == ',') {
+                decrypted_line += c; // Add comma as is
+            } else {
+                decrypted_line += c ^ key[decrypted_line.size() % key.size()];
+            }
+        }
         size_t pos = line.find(',');
         if (pos != string::npos) {
             string existing_website = line.substr(0, pos);
@@ -46,8 +65,11 @@ void create_file(const string& file_name) {
         cout << "Error opening file for writing." << endl;
         return;
     }
-
-    fout << website << "," << password << "\n";
+    string website_en;
+    string password_en;
+    website_en = encrypt(website,key);
+    password_en = encrypt(password,key);
+    fout << website_en << "," << password_en << "\n";
     fout.close();
 
     cout << "Password added successfully." << endl;
@@ -93,13 +115,13 @@ void create_user(const string& file_name) {
         cout << "Error opening file for writing." << endl;
         return;
     }
-
+    
     fout << user << "," << password << "\n";
     fout.close();
 
     cout << "user added successfully." << endl;
 }
-string get_password(const string& file_name, const string& target_website) {
+string get_password(const string& file_name, const string& target_website, const string& key) {
     ifstream fin(file_name);
     if (!fin.is_open()) {
         cout << "Error opening file." << endl;
@@ -108,10 +130,22 @@ string get_password(const string& file_name, const string& target_website) {
 
     string line;
     while (getline(fin, line)) {
-        size_t pos = line.find(',');
+        string decrypted_line;
+        for (char c : line) {
+            // Decrypt each character individually, except for the comma
+            if (c == ',') {
+                decrypted_line += c; // Add comma as is
+            } else {
+                decrypted_line += c ^ key[decrypted_line.size() % key.size()];
+            }
+        }
+        
+        // Find the position of the comma separating username and password in the decrypted line
+        size_t pos = decrypted_line.find(',');
         if (pos != string::npos) {
-            string website = line.substr(0, pos);
-            string password = line.substr(pos + 1);
+            // Extract website and password from decrypted line
+            string website = decrypted_line.substr(0, pos);
+            string password = decrypted_line.substr(pos + 1);
             if (website == target_website) {
                 fin.close();
                 cout << "The password for " << website << " is " << password << endl;
@@ -124,6 +158,7 @@ string get_password(const string& file_name, const string& target_website) {
     cout << "No website with that name." << endl;
     return ""; // Website not found
 }
+
 
 void edit_password(const string& file_name, const string& target_website, const string& new_password) {
     ifstream fin(file_name);
@@ -177,7 +212,7 @@ void edit_password(const string& file_name, const string& target_website, const 
 }
 
 
-void display_file(const string& file_name) {
+void display_file(const string& file_name, const string& key) {
     ifstream fin(file_name);
     if (!fin.is_open()) {
         cout << "Error opening file." << endl;
@@ -187,11 +222,31 @@ void display_file(const string& file_name) {
     string line;
     cout << "Contents of the file:" << endl;
     while (getline(fin, line)) {
-        cout << line << endl;
+        string decrypted_line;
+        for (char c : line) {
+            // Decrypt each character individually, except for the comma
+            if (c == ',') {
+                decrypted_line += c; // Add comma as is
+            } else {
+                decrypted_line += c ^ key[decrypted_line.size() % key.size()];
+            }
+        }
+        
+        // Find the position of the comma separating username and password
+        size_t pos = decrypted_line.find(',');
+        if (pos != string::npos) {
+            // Extract username and password from decrypted line
+            string username = decrypted_line.substr(0, pos);
+            string password = decrypted_line.substr(pos + 1);
+            
+            // Debugging: Print username and password to see if extraction is successful
+            cout << username << " Password:" << password << endl;
+        }
     }
 
     fin.close();
 }
+
 
 void delete_password(const string& file_name, const string& target_website) {
     ifstream fin(file_name);

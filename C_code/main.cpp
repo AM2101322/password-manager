@@ -25,6 +25,7 @@ int main()
     {
         string user_username;
         string user_pass;
+        string key = "123";
 
         cout << "what is your username: ";
         verify_password(users_file, user_username, user_pass);
@@ -43,14 +44,14 @@ int main()
             int action_num = stoi(action);
             if (action_num == 1)
             {
-                create_file(user_username);
+                create_file(user_username,key);
             }
             if (action_num == 2)
             {
                 string website;
                 cout << "for what website: ";
                 getline(cin >> ws, website);
-                get_password(user_username, website);
+                get_password(user_username, website, key);
             }
             if (action_num == 3)
             {   string website;
@@ -70,7 +71,7 @@ int main()
              }
              if (action_num == 5)
              {
-                display_file(user_username);
+                display_file(user_username,key);
              }
         }
         else {
