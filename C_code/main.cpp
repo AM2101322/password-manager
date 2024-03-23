@@ -20,6 +20,7 @@ int main()
     if (choice_num == 1)
     {
         create_user(users_file);
+        return 0;
     }
     if (choice_num == 2)
     {
