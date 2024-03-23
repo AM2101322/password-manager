@@ -283,6 +283,7 @@ bool verify_password(const string& file_name, string& username, string& password
                 string stored_password = line.substr(pos + 1);
                 if (stored_user == username && stored_password == password) {
                     password_matched = true;
+
                 }
             }
         }

@@ -61,6 +61,17 @@ int main()
                 getline(cin >> ws, new_password);
                 edit_password(user_username, website,new_password);
             }
+             if (action_num == 4)
+             {
+                string website;
+                cout << "for what website: ";
+                getline(cin >> ws, website);
+                delete_password(user_username, website);
+             }
+             if (action_num == 5)
+             {
+                display_file(user_username);
+             }
         }
         else {
             cout << "Password verification failed." << endl;
