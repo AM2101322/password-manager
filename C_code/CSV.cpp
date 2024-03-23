@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include "CSV.h"
 using namespace std;
 
 void create_file(const string& file_name) {
@@ -52,9 +52,53 @@ void create_file(const string& file_name) {
 
     cout << "Password added successfully." << endl;
 }
+void create_user(const string& file_name) {
+    ifstream fin(file_name);
+    if (fin.fail()) {
+        // File doesn't exist, create a new one
+        ofstream fout(file_name);
+        if (!fout.is_open()) {
+            cout << "Error creating file." << endl;
+            return;
+        }
+        fout.close();
+        fin.open(file_name);
+    }
 
+    string user, password;
+    cout << "what is your username: " << endl;
+    getline(cin >> ws, user);
 
+    // Check if the user already exists
+    string line;
+    while (getline(fin, line)) {
+        size_t pos = line.find(',');
+        if (pos != string::npos) {
+            string existing_user = line.substr(0, pos);
+            if (existing_user == user) {
+                cout << "user alrady exists" << endl;
+                fin.close();
+                return;
+            }
+        }
+    }
+    fin.close();
 
+    cout << "Enter the password for your user : " << endl;
+    getline(cin >> ws, password);
+
+    // Append the new user and password to the file
+    ofstream fout(file_name, ios::out | ios::app);
+    if (!fout.is_open()) {
+        cout << "Error opening file for writing." << endl;
+        return;
+    }
+
+    fout << user << "," << password << "\n";
+    fout.close();
+
+    cout << "user added successfully." << endl;
+}
 string get_password(const string& file_name, const string& target_website) {
     ifstream fin(file_name);
     if (!fin.is_open()) {
@@ -260,36 +304,4 @@ bool verify_password(const string& file_name) {
     }
 
     return false;
-}
-
-int main() {
-    string file_name;
-    string website;
-    string website_c;
-    string new_pass;
-    string password_c;
-
-    cout << "Enter the file name: " << endl;
-    getline(cin >> ws, file_name);
-
-    create_file(file_name);
-
-    //cout << "Enter the website you want the password for: " << endl;
-    //getline(cin >> ws, website);
-    //get_password(file_name, website);
-//
-    //cout << "Enter the website whose password you want to change: " << endl;
-    //getline(cin >> ws, website_c);
-    //
-    //cout << "Enter the new password: " << endl;
-    //getline(cin >> ws, new_pass);
-//
-    //edit_password(file_name, website_c, new_pass);
-//
-    //display_file(file_name);
-//
-    
-
-    verify_password(file_name);
-    return 0;
 }
