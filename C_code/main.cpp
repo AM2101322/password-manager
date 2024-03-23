@@ -7,12 +7,6 @@ using namespace std;
 
 int main()
 {
-    string file_name;
-    string website;
-    string website_c;
-    string new_pass;
-    string password_c;
-    
     string users_file = "user_file";
 
     string choice; // Changed to string type
@@ -29,11 +23,50 @@ int main()
     }
     if (choice_num == 2)
     {
-        cout << "what is your username: ";
-        verify_password(users_file); 
-        
+        string user_username;
+        string user_pass;
 
-    
+        cout << "what is your username: ";
+        verify_password(users_file, user_username, user_pass);
+
+        if (verify_password)
+        {
+            string action;
+            cout << " welcom back "<< user_username <<" what would you like to do \n"
+            << "1. add a password to your file\n"
+            << "2. see an old password\n"
+            << "3. edit an old password\n"
+            << "4. deleat a password\n" 
+            << "5. see all your passwords: \n";
+            getline(cin >> ws, action);
+
+            int action_num = stoi(action);
+            if (action_num == 1)
+            {
+                create_file(user_username);
+            }
+            if (action_num == 2)
+            {
+                string website;
+                cout << "for what website: ";
+                getline(cin >> ws, website);
+                get_password(user_username, website);
+            }
+            if (action_num == 3)
+            {   string website;
+                string new_password;
+                cout << "for what website: ";
+                getline(cin >> ws, website);
+                cout << "what is the new password: ";
+                getline(cin >> ws, new_password);
+                edit_password(user_username, website,new_password);
+            }
+        }
+        else {
+            cout << "Password verification failed." << endl;
+        }
+
+        return 0;
     }
     else{
         cout << " chose 1 or 2 ";

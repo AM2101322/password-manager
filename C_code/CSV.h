@@ -9,6 +9,6 @@ std::string get_password(const std::string& file_name, const std::string& target
 void edit_password(const std::string& file_name, const std::string& target_website, const std::string& new_password);
 void display_file(const std::string& file_name);
 void delete_password(const std::string& file_name, const std::string& target_website);
-bool verify_password(const std::string& file_name);
+bool verify_password(const std::string& file_name, std::string& username, std::string& password);
 
 #endif 

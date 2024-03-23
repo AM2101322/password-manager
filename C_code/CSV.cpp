@@ -234,12 +234,11 @@ void delete_password(const string& file_name, const string& target_website) {
     cout << "Password for " << target_website << " deleted successfully." << endl;
 }
 
-bool verify_password(const string& file_name) {
-    string user, password;
+bool verify_password(const string& file_name, string& username, string& password) {
     int attempts = 5;
 
     cout << "Enter your user: ";
-    getline(cin >> ws, user);
+    getline(cin >> ws, username);
 
     ifstream fin(file_name);
     if (!fin.is_open()) {
@@ -253,7 +252,7 @@ bool verify_password(const string& file_name) {
         size_t pos = line.find(',');
         if (pos != string::npos) {
             string stored_user = line.substr(0, pos);
-            if (stored_user == user) {
+            if (stored_user == username) {
                 user_found = true;
                 break;
             }
@@ -262,12 +261,12 @@ bool verify_password(const string& file_name) {
     fin.close();
 
     if (!user_found) {
-        cout << "user does not exist." << endl;
+        cout << "User does not exist." << endl;
         return false;
     }
 
     while (attempts > 0) {
-        cout << "Enter the password for " << user << ": ";
+        cout << "Enter the password for " << username << ": ";
         getline(cin >> ws, password);
 
         fin.open(file_name);
@@ -282,9 +281,8 @@ bool verify_password(const string& file_name) {
             if (pos != string::npos) {
                 string stored_user = line.substr(0, pos);
                 string stored_password = line.substr(pos + 1);
-                if (stored_user == user && stored_password == password) {
+                if (stored_user == username && stored_password == password) {
                     password_matched = true;
-                    break;
                 }
             }
         }
